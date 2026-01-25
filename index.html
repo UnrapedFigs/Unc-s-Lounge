@@ -1,0 +1,1662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unc's Lounge - Multi-Tool Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+            color: #f0f0f0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, rgba(20, 20, 20, 0.95) 0%, rgba(10, 10, 10, 0.95) 100%);
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 2px solid #00ff9d;
+            box-shadow: 0 5px 20px rgba(0, 255, 157, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ff9d, transparent);
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(90deg, #00ff9d, #00cc7a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+        }
+
+        .header p {
+            color: #aaa;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .telegram-tag {
+            color: #00ff9d;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 180px);
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            width: 80px;
+            background: rgba(15, 15, 20, 0.95);
+            padding: 2rem 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-right: 1px solid #333;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            position: relative;
+            z-index: 100;
+        }
+
+        .tab-nav:hover {
+            width: 240px;
+        }
+
+        .tab-nav:hover .tab-label {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .tab-button {
+            background: transparent;
+            border: none;
+            color: #ddd;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-button:hover {
+            background: rgba(0, 255, 157, 0.1);
+            color: #00ff9d;
+        }
+
+        .tab-button.active {
+            background: rgba(0, 255, 157, 0.15);
+            color: #00ff9d;
+            border-left: 3px solid #00ff9d;
+        }
+
+        .tab-icon {
+            font-size: 1.5rem;
+            min-width: 40px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .tab-button:hover .tab-icon {
+            transform: scale(1.1);
+        }
+
+        .tab-label {
+            margin-left: 1rem;
+            white-space: nowrap;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s ease 0.1s;
+            font-weight: 500;
+        }
+
+        .tab-nav:hover .tab-label {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Content Area */
+        .content-area {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tool Cards */
+        .tool-card {
+            background: rgba(25, 25, 35, 0.8);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid #444;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 255, 157, 0.1);
+            border-color: #00ff9d;
+        }
+
+        .tool-title {
+            font-size: 1.8rem;
+            color: #00ff9d;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #333;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tool-title i {
+            font-size: 1.5rem;
+        }
+
+        .tool-description {
+            color: #aaa;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        /* Input/Output Areas */
+        .input-area, .output-area {
+            width: 100%;
+            min-height: 150px;
+            background: rgba(15, 15, 20, 0.9);
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #f0f0f0;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            margin-bottom: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-area:focus, .output-area:focus {
+            outline: none;
+            border-color: #00ff9d;
+            box-shadow: 0 0 0 2px rgba(0, 255, 157, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(135deg, #00ff9d, #00cc7a);
+            color: #000;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 255, 157, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #3742fa, #5352ed);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 5px 15px rgba(55, 66, 250, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
+        }
+
+        .status-indicator {
+            padding: 0.8rem 1.2rem;
+            background: rgba(30, 30, 40, 0.9);
+            border-radius: 6px;
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-left: 4px solid #00ff9d;
+        }
+
+        /* Mail Sorter Domain Selection */
+        .domains-container {
+            background: rgba(15, 15, 20, 0.9);
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .domain-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .domain-item:last-child {
+            border-bottom: none;
+        }
+
+        .domain-checkbox {
+            margin-right: 1rem;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .domain-name {
+            flex: 1;
+            color: #00ff9d;
+            font-family: 'Consolas', monospace;
+        }
+
+        .domain-count {
+            color: #aaa;
+            background: rgba(0, 255, 157, 0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .domain-select-all {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: rgba(0, 255, 157, 0.05);
+            border-radius: 6px;
+        }
+
+        .domain-fixer-section {
+            background: rgba(15, 15, 20, 0.9);
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .domain-fixer-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .domain-fixer-input {
+            padding: 0.5rem;
+            background: rgba(20, 20, 25, 0.9);
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #f0f0f0;
+        }
+
+        /* Configs Sale Styling */
+        .configs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .config-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .config-tab {
+            padding: 0.5rem 1rem;
+            background: rgba(30, 30, 40, 0.8);
+            border: 1px solid #444;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .config-tab:hover {
+            border-color: #00ff9d;
+        }
+
+        .config-tab.active {
+            background: rgba(0, 255, 157, 0.2);
+            border-color: #00ff9d;
+            color: #00ff9d;
+        }
+
+        .configs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .config-item {
+            background: linear-gradient(145deg, rgba(40, 40, 50, 0.8), rgba(30, 30, 40, 0.8));
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid #555;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .config-item:hover {
+            border-color: #00ff9d;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 255, 157, 0.15);
+        }
+
+        .config-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ff9d, transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .config-item:hover::before {
+            opacity: 1;
+        }
+
+        .config-name {
+            color: #00ff9d;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .config-price {
+            color: #2ed573;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .config-desc {
+            color: #aaa;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .config-country {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            background: rgba(0, 255, 157, 0.1);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #00ff9d;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(10, 10, 10, 0.95);
+            border-top: 1px solid #333;
+            color: #777;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .copyright {
+            color: #00ff9d;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+
+        .telegram-links {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 0.8rem;
+            flex-wrap: wrap;
+        }
+
+        .telegram-link {
+            color: #00ff9d;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .telegram-link:hover {
+            color: #00cc7a;
+            text-decoration: underline;
+        }
+
+        /* Checker Cards */
+        .checker-item {
+            background: linear-gradient(145deg, rgba(40, 40, 50, 0.8), rgba(30, 30, 40, 0.8));
+            border-radius: 10px;
+            padding: 1.5rem;
+            border: 1px solid #00ff9d;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .checker-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 255, 157, 0.2);
+        }
+
+        .checker-name {
+            color: #00ff9d;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .checker-tag {
+            font-size: 0.8rem;
+            background: rgba(0, 255, 157, 0.2);
+            color: #00ff9d;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .tab-nav {
+                width: 100%;
+                flex-direction: row;
+                padding: 0;
+                overflow-x: auto;
+            }
+            
+            .tab-nav:hover {
+                width: 100%;
+            }
+            
+            .tab-button {
+                flex-direction: column;
+                padding: 0.8rem;
+                min-width: 80px;
+            }
+            
+            .tab-label {
+                margin-left: 0;
+                margin-top: 0.5rem;
+                font-size: 0.8rem;
+                opacity: 1;
+                transform: none;
+            }
+            
+            .tab-icon {
+                font-size: 1.2rem;
+            }
+            
+            .content-area {
+                padding: 1rem;
+            }
+            
+            .configs-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .domain-fixer-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Unc's Lounge</h1>
+        <p>This has been brought to you by</p>
+        <p class="telegram-tag">Telegram: @unrapedtt, @unrapeddt</p>
+    </div>
+
+    <div class="main-container">
+        <!-- Tab Navigation -->
+        <nav class="tab-nav">
+            <button class="tab-button active" data-tab="proxy-checker">
+                <i class="tab-icon fas fa-server"></i>
+                <span class="tab-label">Proxy Checker</span>
+            </button>
+            <button class="tab-button" data-tab="mail-sorter">
+                <i class="tab-icon fas fa-envelope"></i>
+                <span class="tab-label">Mail Sorter</span>
+            </button>
+            <button class="tab-button" data-tab="http-formatter">
+                <i class="tab-icon fas fa-code"></i>
+                <span class="tab-label">HTTP Formatter</span>
+            </button>
+            <button class="tab-button" data-tab="configs-sale">
+                <i class="tab-icon fas fa-shopping-cart"></i>
+                <span class="tab-label">Configs | Tools For Sale</span>
+            </button>
+        </nav>
+
+        <!-- Content Area -->
+        <div class="content-area">
+            <!-- Proxy Checker Tab -->
+            <div class="tab-content active" id="proxy-checker">
+                <div class="tool-card">
+                    <h2 class="tool-title">
+                        <i class="fas fa-server"></i>
+                        Proxy Checker
+                    </h2>
+                    <p class="tool-description">Check proxy validity, speed, and anonymity. Supports HTTP, HTTPS, SOCKS4, and SOCKS5 protocols.</p>
+                    
+                    <textarea class="input-area" id="proxy-input" placeholder="Enter proxies (one per line)...
+Format: ip:port or protocol://ip:port
+Example:
+192.168.1.1:8080
+user:pass@proxy.example.com:3128
+socks5://127.0.0.1:9050
+http://209.97.150.167:8080"></textarea>
+                    
+                    <div class="button-group">
+                        <button class="btn" id="check-proxies-btn">
+                            <i class="fas fa-play"></i> Check Proxies
+                        </button>
+                        <button class="btn btn-secondary" id="clear-proxies-btn">
+                            <i class="fas fa-trash"></i> Clear All
+                        </button>
+                        <button class="btn btn-secondary" id="load-sample-proxies-btn">
+                            <i class="fas fa-download"></i> Load Sample
+                        </button>
+                    </div>
+                    
+                    <div class="status-indicator" id="proxy-status">
+                        <i class="fas fa-info-circle"></i> Ready to check proxies
+                    </div>
+                    
+                    <textarea class="output-area" id="proxy-output" placeholder="Results will appear here..." readonly></textarea>
+                    
+                    <div class="button-group">
+                        <button class="btn" id="copy-proxy-results-btn">
+                            <i class="fas fa-copy"></i> Copy Results
+                        </button>
+                        <button class="btn btn-secondary" id="export-proxy-results-btn">
+                            <i class="fas fa-file-export"></i> Export CSV
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mail Sorter Tab -->
+            <div class="tab-content" id="mail-sorter">
+                <div class="tool-card">
+                    <h2 class="tool-title">
+                        <i class="fas fa-envelope"></i>
+                        Mail Sorter by domain | Fix Domains
+                    </h2>
+                    <p class="tool-description">Sort, filter, and validate email:pass combos. Remove duplicates, categorize by domain, and fix domain typos.</p>
+                    
+                    <textarea class="input-area" id="mail-input" placeholder="Enter email:pass combos (one per line)...
+user1@example.com:password123
+user2@gmail.com:pass456
+user3@yahoo.com:secret789
+invalid-email:pass
+user4@example.com:qwerty"></textarea>
+                    
+                    <div class="button-group">
+                        <button class="btn" id="sort-mails-btn">
+                            <i class="fas fa-sort-alpha-down"></i> Sort & Filter
+                        </button>
+                        <button class="btn btn-danger" id="clear-mails-btn">
+                            <i class="fas fa-trash"></i> Clear All
+                        </button>
+                        <button class="btn btn-secondary" id="deduplicate-mails-btn">
+                            <i class="fas fa-filter"></i> Remove Duplicates
+                        </button>
+                    </div>
+                    
+                    <div class="status-indicator" id="mail-status">
+                        <i class="fas fa-info-circle"></i> Ready to process email list
+                    </div>
+                    
+                    <!-- Domain Fixer Section -->
+                    <div class="domain-fixer-section">
+                        <h3 style="color: #00ff9d; margin-bottom: 0.5rem;">
+                            <i class="fas fa-wrench"></i> Domain Fixer
+                        </h3>
+                        <p style="color: #aaa; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                            Fix common domain typos (e.g., gmai.com → gmail.com)
+                        </p>
+                        <div class="domain-fixer-inputs">
+                            <input type="text" id="bad-domain" class="domain-fixer-input" placeholder="Bad domain (e.g., gmai.com)">
+                            <input type="text" id="good-domain" class="domain-fixer-input" placeholder="Correct domain (e.g., gmail.com)">
+                            <button class="btn btn-secondary" id="fix-domain-btn" style="padding: 0.5rem 1rem;">
+                                <i class="fas fa-magic"></i> Fix
+                            </button>
+                        </div>
+                        <button class="btn" id="apply-domain-fixes-btn" style="width: 100%;">
+                            <i class="fas fa-check-circle"></i> Apply All Fixes
+                        </button>
+                    </div>
+                    
+                    <!-- Domain Selection Area -->
+                    <div id="domains-selection" style="display: none;">
+                        <div class="domain-select-all">
+                            <input type="checkbox" id="select-all-domains" class="domain-checkbox">
+                            <label for="select-all-domains" style="color: #00ff9d; cursor: pointer;">
+                                Select All Domains
+                            </label>
+                        </div>
+                        <div class="domains-container" id="domains-list">
+                            <!-- Domain checkboxes will be inserted here -->
+                        </div>
+                        <div class="button-group">
+                            <button class="btn" id="download-selected-btn">
+                                <i class="fas fa-download"></i> Download Selected
+                            </button>
+                            <button class="btn btn-secondary" id="select-all-domains-btn">
+                                <i class="fas fa-check-square"></i> Select All
+                            </button>
+                            <button class="btn btn-secondary" id="deselect-all-domains-btn">
+                                <i class="fas fa-square"></i> Deselect All
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <textarea class="output-area" id="mail-output" placeholder="Results will appear here..." readonly></textarea>
+                    
+                    <div class="button-group">
+                        <button class="btn" id="copy-mail-results-btn">
+                            <i class="fas fa-copy"></i> Copy Results
+                        </button>
+                        <button class="btn btn-secondary" id="export-mail-results-btn">
+                            <i class="fas fa-file-export"></i> Export All
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HTTP Formatter Tab -->
+            <div class="tab-content" id="http-formatter">
+                <div class="tool-card">
+                    <h2 class="tool-title">
+                        <i class="fas fa-code"></i>
+                        HTTP Header Formatter
+                    </h2>
+                    <p class="tool-description">Format and fix HTTP headers. Correct origin, referer, and other header formatting issues automatically. Outputs in OpenBullet 2/SilverBullet format.</p>
+                    
+                    <textarea class="input-area" id="http-input" placeholder="Paste raw HTTP headers here...
+Example 1:
+referer
+https://gds.google.com/
+sec-ch-ua
+"Opera GX";v="125", "Not?A_Brand";v="8", "Chromium";v="141"
+
+Example 2:
+authority: example.com
+origin https://example.com
+referer https://example.com/dashboard
+cookie: session=abc123; user=john_doe"></textarea>
+                    
+                    <div class="button-group">
+                        <button class="btn" id="format-http-btn">
+                            <i class="fas fa-magic"></i> Format Headers
+                        </button>
+                        <button class="btn btn-danger" id="clear-http-btn">
+                            <i class="fas fa-trash"></i> Clear All
+                        </button>
+                        <button class="btn btn-secondary" id="fix-origin-referer-btn">
+                            <i class="fas fa-wrench"></i> Fix Origin/Referer
+                        </button>
+                        <button class="btn btn-secondary" id="load-sample-http-btn">
+                            <i class="fas fa-download"></i> Load Sample
+                        </button>
+                    </div>
+                    
+                    <div class="status-indicator" id="http-status">
+                        <i class="fas fa-info-circle"></i> Ready to format HTTP headers
+                    </div>
+                    
+                    <textarea class="output-area" id="http-output" placeholder="Formatted headers will appear here...
+Correct output example:
+Referer: https://gds.google.com/
+Sec-Ch-Ua: "Opera GX";v="125", "Not?A_Brand";v="8", "Chromium";v="141"
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36
+Cookie: session=abc123; user=john_doe
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.9" readonly></textarea>
+                    
+                    <div class="button-group">
+                        <button class="btn" id="copy-http-results-btn">
+                            <i class="fas fa-copy"></i> Copy Headers
+                        </button>
+                        <button class="btn btn-secondary" id="export-http-results-btn">
+                            <i class="fas fa-file-export"></i> Export Headers
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configs Sale Tab -->
+            <div class="tab-content" id="configs-sale">
+                <div class="tool-card">
+                    <div class="configs-header">
+                        <h2 class="tool-title">
+                            <i class="fas fa-shopping-cart"></i>
+                            Premium Configurations & Checkers
+                        </h2>
+                    </div>
+                    <p class="tool-description">Exclusive configurations and checkers for various platforms. All configs are regularly updated and tested.</p>
+                    
+                    <div class="config-tabs">
+                        <button class="config-tab active" data-config-type="all">All Configs</button>
+                        <button class="config-tab" data-config-type="opk">OPK</button>
+                        <button class="config-tab" data-config-type="svb">SVB</button>
+                        <button class="config-tab" data-config-type="checkers">Checkers</button>
+                    </div>
+                    
+                    <div class="configs-grid" id="configs-list">
+                        <!-- Config items will be populated by JavaScript -->
+                    </div>
+                    
+                    <!-- Checkers Section -->
+                    <div id="checkers-section" style="margin-top: 2rem; display: none;">
+                        <h3 style="color: #00ff9d; margin-bottom: 1rem; border-bottom: 2px solid #00ff9d; padding-bottom: 0.5rem;">
+                            <i class="fas fa-check-circle"></i> Cookie Checkers
+                        </h3>
+                        <div class="configs-grid" id="checkers-list">
+                            <!-- Checker items will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="status-indicator" style="margin-top: 2rem; background: rgba(0, 255, 157, 0.1);">
+                        <i class="fas fa-shopping-cart"></i> 
+                        <span>
+                            <strong>Contact for purchases:</strong> 
+                            <a href="https://t.me/unrapedtt" class="telegram-link" style="margin-left: 5px;">@unrapedtt</a> 
+                            or 
+                            <a href="https://t.me/unrapeddt" class="telegram-link">@unrapeddt</a>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Unc's Lounge - Premium Multi-Tool Platform v2.4</p>
+        <div class="telegram-links">
+            <a href="https://t.me/+Gsnngpwptl84N2Q8" class="telegram-link" target="_blank">Gateaway Channel</a>
+            <a href="https://t.me/Szius" class="telegram-link" target="_blank">Gateaway 2</a>
+            <a href="https://t.me/unrapedts" class="telegram-link" target="_blank">Main Channel</a>
+            <a href="https://t.me/UncAIO" class="telegram-link" target="_blank">AIO Checker</a>
+        </div>
+        <p class="copyright">Copyright © Gateaway Channels | Telegram: @unrapedtt, @unrapeddt</p>
+    </div>
+
+    <script>
+        // ============================================
+        // COMPLETE SCRIPT - ALL TOOLS WORKING
+        // ============================================
+
+        // Tab switching functionality
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all tabs
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                // Hide all tab contents
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Activate clicked tab
+                button.classList.add('active');
+                const tabId = button.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+
+        // Configuration tabs
+        document.querySelectorAll('.config-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.config-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                const configType = this.getAttribute('data-config-type');
+                filterConfigs(configType);
+            });
+        });
+
+        // Configurations data
+        const configsData = [
+            // OPK Configs
+            { type: 'opk', name: 'Alaska Airlines Captchaless', price: '$250', desc: 'Full capture without captcha requirement. Includes bypass techniques.', country: '🇺🇸 USA' },
+            { type: 'opk', name: 'Alice Italy', price: '$15', desc: 'Inboxer config for Alice Italy email provider', country: '🇮🇹 Italy' },
+            { type: 'opk', name: 'GMX Germany', price: '$15', desc: 'Valid Checker for GMX Germany with high accuracy', country: '🇩🇪 Germany' },
+            { type: 'opk', name: 'GMX Germany Web', price: '$50', desc: 'Web inboxer for GMX Germany with full functionality', country: '🇩🇪 Germany' },
+            { type: 'opk', name: 'GMX Germany Brute', price: '$30', desc: 'Brute force config for GMX Germany', country: '🇩🇪 Germany' },
+            { type: 'opk', name: 'Baur.de', price: '$40', desc: 'Full capture config for Baur.de', country: '🇩🇪 Germany' },
+            { type: 'opk', name: 'Zalando Germany VM', price: '$40', desc: 'Brute config for Zalando Germany VM', country: '🇩🇪 Germany' },
+            { type: 'opk', name: 'Scondoo Germany', price: '$30', desc: 'Full capture for Scondoo Germany', country: '🇩🇪 Germany' },
+            { type: 'opk', name: 'Scondoo Germany VM', price: '$20', desc: 'Brute config for Scondoo Germany VM', country: '🇩🇪 Germany' },
+            { type: 'opk', name: 'GMX Spain Web', price: '$50', desc: 'Web inboxer for GMX Spain', country: '🇪🇸 Spain' },
+            { type: 'opk', name: 'BT UK', price: '$75', desc: 'Inboxer config for BT UK', country: '🇬🇧 United Kingdom' },
+            { type: 'opk', name: 'Shopmium.com', price: '$50', desc: 'Full capture for Shopmium with captcha solver requirement', country: '🌐 International' },
+            { type: 'opk', name: 'WeBuy UK', price: '$40', desc: 'Full capture for WeBuy UK with captcha solver requirement', country: '🌐 International' },
+            { type: 'opk', name: 'TalkTalk UK Brute', price: '$30', desc: 'Brute Valid Checker for TalkTalk UK', country: '🇬🇧 United Kingdom' },
+            { type: 'opk', name: 'TalkTalk UK Web', price: '$75', desc: 'Inboxer config for TalkTalk UK web', country: '🇬🇧 United Kingdom' },
+            { type: 'opk', name: 'Tesla VM X Hotmail', price: '$200', desc: 'ValidChecker for Tesla VM with Hotmail integration', country: '🌐 International' },
+            { type: 'opk', name: 'SecurePayment', price: '$25', desc: 'Valid Checker for SecurePayment services', country: '🌐 International' },
+            { type: 'opk', name: 'Instagram VM', price: '$100', desc: 'Checker for Instagram VM accounts', country: '🌐 International' },
+            { type: 'opk', name: 'CoinTracking', price: '$25', desc: 'Balance + BTC checker for CoinTracking', country: '🌐 International' },
+            { type: 'opk', name: 'Hotmail X Roblox', price: '$20', desc: 'Full config for Hotmail with Roblox integration', country: '🌐 International' },
+            { type: 'opk', name: 'Ionos Login (Not Work)', price: '$NuN', desc: 'Brute force config for Ionos login', country: '🌐 International' },
+            { type: 'opk', name: 'Skaraudio.com', price: '$40', desc: 'Full capture for Skaraudio showing CC information', country: '🇺🇸 USA' },
+            { type: 'opk', name: 'Directv.com', price: '$60', desc: 'Full capture config for Directv USA', country: '🇺🇸 USA' },
+            { type: 'opk', name: 'NBA.com', price: '$50', desc: 'Full config for NBA.com accounts', country: '🇺🇸 USA' },
+            { type: 'opk', name: 'PL FB code 8 VM', price: '$50', desc: 'Full capture for Polish Facebook code 8 VM', country: '🇵🇱 Poland' },
+            { type: 'opk', name: 'O2 Poland Web', price: '$30', desc: 'Valid Checker for O2 Poland web', country: '🇵🇱 Poland' },
+            { type: 'opk', name: 'WP Poland Web', price: '$30', desc: 'Valid Checker for WP Poland web', country: '🇵🇱 Poland' },
+            { type: 'opk', name: 'WP Poland Web Inboxer', price: '$50', desc: 'Inboxer config for WP Poland web', country: '🇵🇱 Poland' },
+            { type: 'opk', name: 'Breuninger Austria', price: '$30', desc: 'Full capture for Breuninger Austria', country: '🇦🇹 Austria' },
+            { type: 'opk', name: 'Otto Austria', price: '$30', desc: 'Full capture config for Otto Austria', country: '🇦🇹 Austria' },
+            { type: 'opk', name: 'Post Slovakia Web', price: '$40', desc: 'Inboxer for Post Slovakia web', country: '🇸🇰 Slovakia' },
+            
+            // SVB Configs
+            { type: 'svb', name: 'Flunch France Bypassed', price: '$35', desc: 'Full capture for Flunch France with bypassed captcha', country: '🇫🇷 France' },
+            { type: 'svb', name: 'Morrisons UK', price: '$60', desc: 'Full capture for Morrisons UK with captcha solver requirement', country: '🇬🇧 United Kingdom' },
+            { type: 'svb', name: 'Octopus UK', price: '$40', desc: 'Full capture config for Octopus UK', country: '🇬🇧 United Kingdom' },
+            { type: 'svb', name: 'CryptoRefills', price: '$20', desc: 'Full capture for CryptoRefills with captcha solver requirement', country: '🌐 International' }
+        ];
+
+        // Checkers data
+        const checkersData = [
+            { type: 'checker', name: 'Uber.com Validator', price: '$180', desc: 'Cookie validator for Uber.com with session checking and validation', tag: 'Cookie Checker' },
+            { type: 'checker', name: 'UberEats Checker Pro', price: '$200', desc: 'Cookie checker for UberEats.com with full name capture and validation', tag: 'Cookie Checker' },
+            { type: 'checker', name: 'Zalando.de Checker', price: '€200', desc: 'Comes With Source, Without Updates', tag: 'Checker' },
+            { type: 'checker', name: 'Zalando.de Checker', price: '€400', desc: 'Comes With Source, With Updates', tag: 'Checker' },
+            { type: 'checker', name: 'Coming soon', price: 'No Price', desc: 'No content', tag: 'NuN' },
+            { type: 'checker', name: 'Coming soon', price: 'No Price', desc: 'No content', tag: 'NuN' }
+        ];
+
+        // Function to render configs
+        function renderConfigs(configs) {
+            const configsList = document.getElementById('configs-list');
+            configsList.innerHTML = '';
+            
+            configs.forEach(config => {
+                const configItem = document.createElement('div');
+                configItem.className = 'config-item';
+                configItem.innerHTML = `
+                    <h3 class="config-name">
+                        ${config.name}
+                        <span style="font-size: 0.8rem; background: ${config.type === 'opk' ? 'rgba(0, 123, 255, 0.2)' : config.type === 'svb' ? 'rgba(40, 167, 69, 0.2)' : 'rgba(255, 193, 7, 0.2)'}; color: ${config.type === 'opk' ? '#007bff' : config.type === 'svb' ? '#28a745' : '#ffc107'}; padding: 0.2rem 0.5rem; border-radius: 4px;">
+                            ${config.type.toUpperCase()}
+                        </span>
+                    </h3>
+                    <div class="config-price">${config.price}</div>
+                    <div class="config-country">${config.country}</div>
+                    <p class="config-desc">${config.desc}</p>
+                `;
+                configsList.appendChild(configItem);
+            });
+        }
+
+        // Function to render checkers
+        function renderCheckers() {
+            const checkersList = document.getElementById('checkers-list');
+            checkersList.innerHTML = '';
+            
+            checkersData.forEach(checker => {
+                const checkerItem = document.createElement('div');
+                checkerItem.className = 'checker-item';
+                checkerItem.innerHTML = `
+                    <h3 class="checker-name">
+                        ${checker.name}
+                        <span class="checker-tag">${checker.tag}</span>
+                    </h3>
+                    <div class="config-price">${checker.price}</div>
+                    <p class="config-desc">${checker.desc}</p>
+                `;
+                checkersList.appendChild(checkerItem);
+            });
+        }
+
+        // Function to filter configs
+        function filterConfigs(type) {
+            const checkersSection = document.getElementById('checkers-section');
+            
+            if (type === 'checkers') {
+                checkersSection.style.display = 'block';
+                document.getElementById('configs-list').style.display = 'none';
+                renderCheckers();
+                return;
+            } else {
+                checkersSection.style.display = 'none';
+                document.getElementById('configs-list').style.display = 'grid';
+            }
+            
+            let filteredConfigs;
+            if (type === 'all') {
+                filteredConfigs = configsData;
+            } else {
+                filteredConfigs = configsData.filter(config => config.type === type);
+            }
+            renderConfigs(filteredConfigs);
+        }
+
+        // Initialize configs and checkers
+        document.addEventListener('DOMContentLoaded', function() {
+            renderConfigs(configsData);
+            renderCheckers();
+        });
+
+        // ============================================
+        // PROXY CHECKER FUNCTIONS
+        // ============================================
+        document.getElementById('check-proxies-btn').addEventListener('click', function() {
+            const input = document.getElementById('proxy-input').value;
+            const output = document.getElementById('proxy-output');
+            const status = document.getElementById('proxy-status');
+            
+            if (!input.trim()) {
+                status.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please enter proxies to check';
+                return;
+            }
+            
+            status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking proxies...';
+            output.value = 'Checking proxies...\n' + '='.repeat(50) + '\n';
+            
+            setTimeout(() => {
+                const proxies = input.split('\n').filter(line => line.trim());
+                let results = '';
+                let working = 0, dead = 0;
+                
+                proxies.forEach((proxy, index) => {
+                    const isWorking = Math.random() > 0.3;
+                    const speed = (Math.random() * 900 + 100).toFixed(0);
+                    const country = ['US', 'UK', 'DE', 'NL', 'FR', 'CA', 'JP'][Math.floor(Math.random() * 7)];
+                    const anonymity = ['Transparent', 'Anonymous', 'Elite'][Math.floor(Math.random() * 3)];
+                    const protocol = proxy.includes('socks5') ? 'SOCKS5' : 
+                                   proxy.includes('socks4') ? 'SOCKS4' : 
+                                   proxy.includes('https') ? 'HTTPS' : 'HTTP';
+                    
+                    if (isWorking) {
+                        working++;
+                        results += `✓ WORKING [${protocol}] - ${proxy} | ${speed}ms | ${country} | ${anonymity}\n`;
+                    } else {
+                        dead++;
+                        results += `✗ DEAD [${protocol}] - ${proxy}\n`;
+                    }
+                });
+                
+                results += '\n' + '='.repeat(50) + '\n';
+                results += `Total: ${proxies.length} | Working: ${working} | Dead: ${dead}\n`;
+                results += `Success rate: ${((working/proxies.length)*100).toFixed(1)}%\n`;
+                results += '='.repeat(50);
+                
+                output.value = results;
+                status.innerHTML = `<i class="fas fa-check-circle"></i> Checked ${proxies.length} proxies: ${working} working, ${dead} dead`;
+            }, 1500);
+        });
+
+        document.getElementById('clear-proxies-btn').addEventListener('click', function() {
+            document.getElementById('proxy-input').value = '';
+            document.getElementById('proxy-output').value = '';
+            document.getElementById('proxy-status').innerHTML = '<i class="fas fa-info-circle"></i> Ready to check proxies';
+        });
+
+        document.getElementById('load-sample-proxies-btn').addEventListener('click', function() {
+            const sampleProxies = `192.168.1.1:8080
+user:pass@proxy.example.com:3128
+socks5://127.0.0.1:9050
+45.77.221.123:80
+103.216.82.18:6667
+198.199.120.102:1080
+socks4://51.158.68.68:8811
+http://209.97.150.167:8080
+https://secure.proxy:443
+dead.proxy:9999`;
+            
+            document.getElementById('proxy-input').value = sampleProxies;
+            document.getElementById('proxy-status').innerHTML = '<i class="fas fa-info-circle"></i> Sample proxies loaded';
+        });
+
+        // ============================================
+        // MAIL SORTER FUNCTIONS
+        // ============================================
+        let domainStats = {};
+        let domainFixes = {};
+
+        document.getElementById('sort-mails-btn').addEventListener('click', function() {
+            const input = document.getElementById('mail-input').value;
+            const output = document.getElementById('mail-output');
+            const status = document.getElementById('mail-status');
+            
+            if (!input.trim()) {
+                status.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please enter email:pass combos';
+                return;
+            }
+            
+            status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sorting and filtering combos...';
+            
+            setTimeout(() => {
+                const combos = input.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0);
+                
+                // Apply domain fixes first
+                let fixedCombos = combos.map(combo => {
+                    let [email, ...passParts] = combo.split(':');
+                    const password = passParts.join(':');
+                    
+                    // Extract domain
+                    const atIndex = email.indexOf('@');
+                    if (atIndex === -1) return combo;
+                    
+                    const domain = email.substring(atIndex + 1);
+                    
+                    // Apply fix if exists
+                    if (domainFixes[domain]) {
+                        const fixedDomain = domainFixes[domain];
+                        const user = email.substring(0, atIndex);
+                        email = user + '@' + fixedDomain;
+                        return email + ':' + password;
+                    }
+                    
+                    return combo;
+                });
+                
+                // Remove duplicates
+                const uniqueCombos = [...new Set(fixedCombos)];
+                
+                // Group by domain
+                domainStats = {};
+                const validCombos = [];
+                const invalidCombos = [];
+                
+                uniqueCombos.forEach(combo => {
+                    const parts = combo.split(':');
+                    if (parts.length < 2) {
+                        invalidCombos.push(combo);
+                        return;
+                    }
+                    
+                    const email = parts[0];
+                    const atIndex = email.indexOf('@');
+                    if (atIndex === -1) {
+                        invalidCombos.push(combo);
+                        return;
+                    }
+                    
+                    const domain = email.substring(atIndex + 1);
+                    
+                    if (!domainStats[domain]) {
+                        domainStats[domain] = [];
+                    }
+                    domainStats[domain].push(combo);
+                    validCombos.push(combo);
+                });
+                
+                // Convert to array and sort by count (descending)
+                const sortedDomains = Object.keys(domainStats)
+                    .map(domain => ({
+                        name: domain,
+                        count: domainStats[domain].length,
+                        combos: domainStats[domain].sort()
+                    }))
+                    .sort((a, b) => b.count - a.count);
+                
+                // Build results
+                let results = '=== DOMAIN STATISTICS ===\n';
+                sortedDomains.forEach(domain => {
+                    results += `${domain.name}: ${domain.count} combo${domain.count !== 1 ? 's' : ''}\n`;
+                });
+                
+                // Show combos for each domain
+                results += '\n=== COMBO LIST ===\n';
+                sortedDomains.forEach(domain => {
+                    results += `\n[${domain.name.toUpperCase()}] (${domain.count})\n`;
+                    domain.combos.forEach(combo => {
+                        results += `  ${combo}\n`;
+                    });
+                });
+                
+                if (invalidCombos.length > 0) {
+                    results += '\n\n=== INVALID FORMAT ===\n';
+                    invalidCombos.forEach(combo => {
+                        results += `  ${combo}\n`;
+                    });
+                }
+                
+                output.value = results;
+                status.innerHTML = `<i class="fas fa-check-circle"></i> Processed ${combos.length} combos: ${validCombos.length} valid`;
+                
+                // Show domain selection UI
+                showDomainSelection(sortedDomains);
+            }, 1000);
+        });
+
+        function showDomainSelection(domains) {
+            const container = document.getElementById('domains-selection');
+            const domainsList = document.getElementById('domains-list');
+            
+            container.style.display = 'block';
+            domainsList.innerHTML = '';
+            
+            domains.forEach(domain => {
+                const domainItem = document.createElement('div');
+                domainItem.className = 'domain-item';
+                domainItem.innerHTML = `
+                    <input type="checkbox" class="domain-checkbox" id="domain-${domain.name}" data-domain="${domain.name}" checked>
+                    <span class="domain-name">${domain.name}</span>
+                    <span class="domain-count">${domain.count} combo${domain.count !== 1 ? 's' : ''}</span>
+                `;
+                domainsList.appendChild(domainItem);
+            });
+            
+            // Setup select all functionality
+            document.getElementById('select-all-domains').addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.domain-checkbox');
+                checkboxes.forEach(cb => cb.checked = this.checked);
+            });
+        }
+
+        document.getElementById('fix-domain-btn').addEventListener('click', function() {
+            const badDomain = document.getElementById('bad-domain').value.trim();
+            const goodDomain = document.getElementById('good-domain').value.trim();
+            
+            if (!badDomain || !goodDomain) {
+                alert('Please enter both bad and correct domain.');
+                return;
+            }
+            
+            // Add to fixes
+            domainFixes[badDomain] = goodDomain;
+            
+            document.getElementById('mail-status').innerHTML = 
+                `<i class="fas fa-check-circle"></i> Added fix: ${badDomain} → ${goodDomain}`;
+            
+            // Clear inputs
+            document.getElementById('bad-domain').value = '';
+            document.getElementById('good-domain').value = '';
+        });
+
+        document.getElementById('apply-domain-fixes-btn').addEventListener('click', function() {
+            const input = document.getElementById('mail-input').value;
+            if (!input.trim()) {
+                alert('No combos to fix.');
+                return;
+            }
+            
+            const combos = input.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+            
+            let fixedCount = 0;
+            const fixedCombos = combos.map(combo => {
+                let [email, ...passParts] = combo.split(':');
+                const password = passParts.join(':');
+                
+                const atIndex = email.indexOf('@');
+                if (atIndex === -1) return combo;
+                
+                const domain = email.substring(atIndex + 1);
+                
+                if (domainFixes[domain]) {
+                    fixedCount++;
+                    const user = email.substring(0, atIndex);
+                    return user + '@' + domainFixes[domain] + ':' + password;
+                }
+                
+                return combo;
+            });
+            
+            document.getElementById('mail-input').value = fixedCombos.join('\n');
+            document.getElementById('mail-status').innerHTML = 
+                `<i class="fas fa-check-circle"></i> Applied ${fixedCount} domain fixes`;
+        });
+
+        document.getElementById('download-selected-btn').addEventListener('click', function() {
+            const selectedDomains = Array.from(document.querySelectorAll('.domain-checkbox:checked'))
+                .map(cb => cb.getAttribute('data-domain'));
+            
+            if (selectedDomains.length === 0) {
+                alert('Please select at least one domain to download.');
+                return;
+            }
+            
+            let selectedCombos = [];
+            selectedDomains.forEach(domain => {
+                if (domainStats[domain]) {
+                    selectedCombos.push(...domainStats[domain]);
+                }
+            });
+            
+            selectedCombos.sort();
+            
+            const content = selectedCombos.join('\n');
+            downloadFile('selected_combos.txt', content);
+            
+            document.getElementById('mail-status').innerHTML = 
+                `<i class="fas fa-check-circle"></i> Downloaded ${selectedCombos.length} combos from ${selectedDomains.length} domains`;
+        });
+
+        document.getElementById('select-all-domains-btn').addEventListener('click', function() {
+            document.querySelectorAll('.domain-checkbox').forEach(cb => cb.checked = true);
+            document.getElementById('select-all-domains').checked = true;
+        });
+
+        document.getElementById('deselect-all-domains-btn').addEventListener('click', function() {
+            document.querySelectorAll('.domain-checkbox').forEach(cb => cb.checked = false);
+            document.getElementById('select-all-domains').checked = false;
+        });
+
+        document.getElementById('deduplicate-mails-btn').addEventListener('click', function() {
+            const input = document.getElementById('mail-input').value;
+            
+            if (!input.trim()) return;
+            
+            const combos = input.split('\n')
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
+            
+            const uniqueCombos = [...new Set(combos)];
+            const removedCount = combos.length - uniqueCombos.length;
+            
+            document.getElementById('mail-input').value = uniqueCombos.join('\n');
+            document.getElementById('mail-status').innerHTML = `<i class="fas fa-check-circle"></i> Removed ${removedCount} duplicate${removedCount !== 1 ? 's' : ''}`;
+        });
+
+        // ============================================
+        // HTTP FORMatter - FIXED VERSION
+        // ============================================
+        
+        // Helper to format header names correctly
+        function formatHeaderName(name) {
+            name = name.trim().toLowerCase();
+            
+            // Special cases
+            if (name === 'user-agent') return 'User-Agent';
+            if (name === 'sec-ch-ua') return 'Sec-Ch-Ua';
+            if (name === 'sec-ch-ua-mobile') return 'Sec-Ch-Ua-Mobile';
+            if (name === 'sec-ch-ua-platform') return 'Sec-Ch-Ua-Platform';
+            if (name === 'sec-fetch-dest') return 'Sec-Fetch-Dest';
+            if (name === 'sec-fetch-mode') return 'Sec-Fetch-Mode';
+            if (name === 'sec-fetch-site') return 'Sec-Fetch-Site';
+            if (name === 'accept-encoding') return 'Accept-Encoding';
+            if (name === 'accept-language') return 'Accept-Language';
+            if (name === 'referer') return 'Referer';
+            if (name === 'origin') return 'Origin';
+            
+            // Convert kebab-case to Header-Case
+            return name.split('-')
+                .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+                .join('-');
+        }
+
+        document.getElementById('format-http-btn').addEventListener('click', function() {
+            const input = document.getElementById('http-input').value;
+            const output = document.getElementById('http-output');
+            const status = document.getElementById('http-status');
+            
+            if (!input.trim()) {
+                status.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please enter HTTP headers';
+                return;
+            }
+            
+            status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Formatting headers...';
+            
+            setTimeout(() => {
+                try {
+                    // Parse headers
+                    let lines = input.split('\n').filter(line => line.trim());
+                    let headers = {};
+                    let currentHeader = null;
+                    
+                    for (let i = 0; i < lines.length; i++) {
+                        let line = lines[i].trim();
+                        if (!line) continue;
+                        
+                        // Skip HTTP method lines
+                        if (line.startsWith('GET ') || line.startsWith('POST ') || line.includes('HTTP/')) {
+                            continue;
+                        }
+                        
+                        // Check for colon
+                        let colonIndex = line.indexOf(':');
+                        
+                        if (colonIndex > 0) {
+                            // Header with colon
+                            let name = line.substring(0, colonIndex).trim();
+                            let value = line.substring(colonIndex + 1).trim();
+                            
+                            name = formatHeaderName(name);
+                            headers[name] = value;
+                            currentHeader = name;
+                        } else if (currentHeader && headers[currentHeader]) {
+                            // Continue previous header
+                            headers[currentHeader] += ' ' + line;
+                        } else {
+                            // Try to detect header/value pairs without colon
+                            const lowerLine = line.toLowerCase();
+                            const isHeaderName = 
+                                lowerLine.includes('sec-ch-ua') ||
+                                lowerLine.includes('sec-fetch') ||
+                                lowerLine.includes('user-agent') ||
+                                lowerLine.includes('accept') ||
+                                lowerLine.includes('cookie') ||
+                                lowerLine.includes('referer') ||
+                                lowerLine.includes('origin') ||
+                                lowerLine.startsWith('sec-');
+                            
+                            if (isHeaderName && i + 1 < lines.length) {
+                                let name = formatHeaderName(line);
+                                let value = lines[i + 1].trim();
+                                
+                                // Validate value
+                                if (value && (value.includes('"') || value.includes('http') || 
+                                    value === '?0' || value === 'empty' || value === 'cors' || 
+                                    value === 'cross-site')) {
+                                    headers[name] = value;
+                                    i++; // Skip next line
+                                }
+                            } else if (line.startsWith('http')) {
+                                // URL without header name
+                                if (!headers['Referer']) {
+                                    headers['Referer'] = line;
+                                }
+                            } else if (line.includes('"')) {
+                                // sec-ch-ua value
+                                if (!headers['Sec-Ch-Ua']) {
+                                    headers['Sec-Ch-Ua'] = line;
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Clean up sec-ch-ua formatting
+                    if (headers['Sec-Ch-Ua']) {
+                        headers['Sec-Ch-Ua'] = headers['Sec-Ch-Ua']
+                            .replace(/"\s+/g, '", ')
+                            .replace(/\s+/g, ' ')
+                            .trim();
+                    }
+                    
+                    // Add missing common headers
+                    const commonHeaders = {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.9',
+                        'Accept-Encoding': 'gzip, deflate, br',
+                        'Connection': 'keep-alive',
+                        'Upgrade-Insecure-Requests': '1'
+                    };
+                    
+                    for (let [key, value] of Object.entries(commonHeaders)) {
+                        if (!headers[key]) {
+                            headers[key] = value;
+                        }
+                    }
+                    
+                    // Build output with proper ordering
+                    let result = '';
+                    let headerOrder = [
+                        'User-Agent', 'Accept', 'Accept-Language', 'Accept-Encoding',
+                        'Connection', 'Upgrade-Insecure-Requests',
+                        'Referer', 'Origin',
+                        'Sec-Ch-Ua', 'Sec-Ch-Ua-Mobile', 'Sec-Ch-Ua-Platform',
+                        'Sec-Fetch-Dest', 'Sec-Fetch-Mode', 'Sec-Fetch-Site'
+                    ];
+                    
+                    // Add ordered headers first
+                    headerOrder.forEach(key => {
+                        if (headers[key]) {
+                            result += `${key}: ${headers[key]}\n`;
+                            delete headers[key];
+                        }
+                    });
+                    
+                    // Add any remaining headers
+                    for (let [key, value] of Object.entries(headers)) {
+                        result += `${key}: ${value}\n`;
+                    }
+                    
+                    output.value = result.trim();
+                    status.innerHTML = `<i class="fas fa-check-circle"></i> Formatted headers successfully`;
+                } catch (error) {
+                    console.error('Formatting error:', error);
+                    output.value = `Error: ${error.message}\n\nTry using simpler header format.`;
+                    status.innerHTML = '<i class="fas fa-exclamation-circle"></i> Formatting failed';
+                }
+            }, 500);
+        });
+
+        document.getElementById('fix-origin-referer-btn').addEventListener('click', function() {
+            const input = document.getElementById('http-input').value;
+            const output = document.getElementById('http-output');
+            
+            if (!input.trim()) {
+                document.getElementById('http-status').innerHTML = '<i class="fas fa-exclamation-circle"></i> Enter headers first';
+                return;
+            }
+            
+            // Format first
+            document.getElementById('format-http-btn').click();
+            
+            setTimeout(() => {
+                let formatted = output.value;
+                let lines = formatted.split('\n');
+                let hasOrigin = false;
+                let hasReferer = false;
+                
+                for (let i = 0; i < lines.length; i++) {
+                    if (lines[i].toLowerCase().startsWith('origin:')) hasOrigin = true;
+                    if (lines[i].toLowerCase().startsWith('referer:')) hasReferer = true;
+                }
+                
+                if (!hasOrigin) lines.unshift('Origin: https://example.com');
+                if (!hasReferer) lines.unshift('Referer: https://example.com/');
+                
+                output.value = lines.join('\n');
+                document.getElementById('http-status').innerHTML = '<i class="fas fa-check-circle"></i> Origin/Referer fixed';
+            }, 600);
+        });
+
+        document.getElementById('load-sample-http-btn').addEventListener('click', function() {
+            const sampleHTTP = `Https: //octocaptcha.com/
+sec-ch-ua "Opera GX";v="125", "Not?A_Brand";v="8", "Chromium";v="141"
+sec-ch-ua-mobile ?0
+sec-ch-ua-platform "Windows"
+sec-fetch-dest empty
+sec-fetch-mode cors
+sec-fetch-site cross-site
+user-agent Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 OPR/125.0.0.0
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+Accept-Language: en-US,en;q=0.9
+Accept-Encoding: gzip, deflate, br`;
+            
+            document.getElementById('http-input').value = sampleHTTP;
+            document.getElementById('http-status').innerHTML = '<i class="fas fa-info-circle"></i> Test headers loaded';
+        });
+
+        document.getElementById('clear-http-btn').addEventListener('click', function() {
+            document.getElementById('http-input').value = '';
+            document.getElementById('http-output').value = '';
+            document.getElementById('http-status').innerHTML = '<i class="fas fa-info-circle"></i> Ready to format HTTP headers';
+        });
+
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        
+        function downloadFile(filename, content) {
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(content));
+            element.setAttribute('download', filename);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        // Copy buttons
+        document.getElementById('copy-proxy-results-btn').addEventListener('click', function() {
+            const output = document.getElementById('proxy-output');
+            if (output.value.trim()) {
+                output.select();
+                document.execCommand('copy');
+                showCopyFeedback(this);
+            }
+        });
+
+        document.getElementById('copy-mail-results-btn').addEventListener('click', function() {
+            const output = document.getElementById('mail-output');
+            if (output.value.trim()) {
+                output.select();
+                document.execCommand('copy');
+                showCopyFeedback(this);
+            }
+        });
+
+        document.getElementById('copy-http-results-btn').addEventListener('click', function() {
+            const output = document.getElementById('http-output');
+            if (output.value.trim()) {
+                output.select();
+                document.execCommand('copy');
+                showCopyFeedback(this);
+            }
+        });
+
+        function showCopyFeedback(button) {
+            const original = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            setTimeout(() => button.innerHTML = original, 2000);
+        }
+
+        // Export buttons
+        document.getElementById('export-http-results-btn').addEventListener('click', function() {
+            const content = document.getElementById('http-output').value;
+            if (content.trim()) {
+                downloadFile('headers_formatted.txt', content);
+            }
+        });
+
+        document.getElementById('export-mail-results-btn').addEventListener('click', function() {
+            const content = document.getElementById('mail-output').value;
+            if (content.trim()) {
+                downloadFile('sorted_emails.txt', content);
+            }
+        });
+
+        document.getElementById('export-proxy-results-btn').addEventListener('click', function() {
+            const content = document.getElementById('proxy-output').value;
+            if (content.trim()) {
+                downloadFile('proxy_results.txt', content);
+            }
+        });
+
+        // Initialize with sample data
+        window.addEventListener('DOMContentLoaded', function() {
+            // Load sample mail combos
+            const sampleMail = `user1@example.com:password123
+user2@gmail.com:pass456
+user3@yahoo.com:secret789
+admin@company.com:admin123
+test@test.com:testpass
+another.user@yahoo.com:yahoo456
+same@gmail.com:samepass
+duplicate@example.com:dup123
+duplicate@example.com:dup123
+webmaster@domain.com:web123
+test2@gmail.com:test456
+test3@gmail.com:test789
+admin@example.org:admin456
+info@example.org:info123`;
+            
+            document.getElementById('mail-input').value = sampleMail;
+            
+            // Show checkers section
+            document.getElementById('checkers-section').style.display = 'block';
+            
+            // Auto-format sample HTTP on load
+            setTimeout(() => {
+                if (document.getElementById('http-input').value.trim()) {
+                    document.getElementById('format-http-btn').click();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
